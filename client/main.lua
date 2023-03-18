@@ -83,6 +83,7 @@ RegisterNetEvent("f-oxyruns:client:StartOxy", function()
 	TriggerServerEvent("f-oxyrun:server:StartOxyPayment")
 	oxydeliverblip()
 	oxydeliveryped()
+	startedrun = true
 	return true
 end)
 
