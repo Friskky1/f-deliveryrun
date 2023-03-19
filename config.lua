@@ -30,5 +30,5 @@ Config.DropOffLocation = {
     vector4(-270.55, -977.02, 31.22, 162.47),
 }
 
-Config.PDAlerts = "qb" -- qb or ps
+Config.PDAlerts = "qb" -- qb, ps and cd
 Config.CallCopsChance = math.random(30, 50)
