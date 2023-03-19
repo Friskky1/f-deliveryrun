@@ -66,6 +66,7 @@ RegisterNetEvent("f-oxyrun:client:check", function(data)
 	if candeliver then
 		TriggerServerEvent("f-oxyrun:server:reward")
 		candeliver = false
+		startedrun = false
 		RemoveBlip(dropoffblip)
 		DeleteOxyPed(data.args)
 	else
@@ -84,7 +85,6 @@ RegisterNetEvent("f-oxyruns:client:StartOxy", function()
 	oxydeliverblip()
 	oxydeliveryped()
 	startedrun = true
-	return true
 end)
 
 CreateThread(function()
