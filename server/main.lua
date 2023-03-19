@@ -3,7 +3,8 @@ local QBCore = exports['qb-core']:GetCoreObject()
 RegisterNetEvent("f-oxyrun:server:StartOxyPayment", function()
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    Player.Functions.RemoveMoney('cash', Config.StartOxyPayment, "oxy start")
+    Player.Functions.RemoveMoney('cash', Config.StartOxyPayment, "Oxy Start")
+    TriggerClientEvent("f-oxyruns:client:StartOxy", src)
 end)
 
 RegisterNetEvent("f-oxyrun:server:reward", function()
@@ -15,15 +16,13 @@ RegisterNetEvent("f-oxyrun:server:reward", function()
     local cash = math.random(Config.CashAmount[1], Config.CashAmount[2])
     if Player then
         if cashchance <= Config.CashChance then
-            if Player.Functions.AddMoney("cash", cash, "oxy money") then
-                TriggerClientEvent("f-oxyrun:client:alertcops", src)
-                TriggerClientEvent('QBCore:Notify', src, "You got $"..cash.."", "primary", 10000)
+            if Player.Functions.AddMoney("cash", cash, "Oxy Money") then
+                TriggerClientEvent('QBCore:Notify', src, "You got $"..cash.."", "success", 5000)
             end
         else
             if Player.Functions.AddItem(Config.OxyItem, Config.OxyAmount) then
-                TriggerClientEvent("f-oxyrun:client:alertcops", src)
                 TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.OxyItem], "add", Config.OxyAmount)
-                TriggerClientEvent('QBCore:Notify', src, "You did not get any cash. But you got "..Config.OxyAmount.." Oxy instead", "primary", 10000)
+                TriggerClientEvent('QBCore:Notify', src, "You did not get any cash. But you got "..Config.OxyAmount.." Oxy instead", "primary", 5000)
             end
         end
     end

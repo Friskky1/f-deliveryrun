@@ -3,6 +3,10 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local startedrun = false
 local candeliver = false
 local curcoords = nil
+local oxydelivered = 0
+local candropoff = false
+local hasdropoff = false
+local lastdelivery = 1
 
 RegisterNetEvent("f-oxyrun:client:alertcops", function()
 	if Config.PDAlerts == "ps" then
@@ -10,7 +14,7 @@ RegisterNetEvent("f-oxyrun:client:alertcops", function()
 	elseif Config.PDAlerts == "qb" then
 		TriggerServerEvent('police:server:policeAlert', 'Suspicious Hand-off') -- Regular qbcore
 	else
-		print("Please change your Config.PDAlerts to match one of the dispatches.")
+		print("Please change your Config.PDAlerts to match one of the dispatches scripts.")
 	end
 end)
 
@@ -31,15 +35,15 @@ end
 
 local function oxydeliverblip()
 	dropoffblip = AddBlipForCoord(dropoffcoords.x, dropoffcoords.y, dropoffcoords.z)
-	SetBlipSprite(dropoffblip, 1)
+	SetBlipSprite(dropoffblip, 51)
 	SetBlipScale(dropoffblip, 0.8)
 	SetBlipDisplay(dropoffblip, 2)
-	SetBlipColour(dropoffblip, 28)
+	SetBlipColour(dropoffblip, 0)
 	SetBlipRoute(dropoffblip, true)
 end
 
 local function oxydeliveryped()
-	local ped = Config.DropOffPed
+	local ped = Config.DropOffPeds[math.random(#Config.DropOffPeds)]
 	RequestModel(ped)
 	while not HasModelLoaded(ped) do 
 		Wait(10) 
@@ -62,29 +66,64 @@ local function DeleteOxyPed(pedhash)
 	DeletePed(pedhash)
 end
 
-RegisterNetEvent("f-oxyrun:client:check", function(data)
-	if candeliver then
-		TriggerServerEvent("f-oxyrun:server:reward")
-		candeliver = false
+local function fetchlocation()
+	local curk = Config.DropOffLocation[math.random(#Config.DropOffLocation)]
+	if curk ~= lastdelivery then 
+		return curk
+	else 
+		return fetchlocation()
+	end
+end
+
+local function CreateRun()
+	if oxydelivered == Config.MaxRuns then
+		QBCore.Functions.Notify("You finished the OxyRun", "success", 5000)
+		oxydelivered = 0
 		startedrun = false
+		candeliver = false
+		candropoff = false
+		hasdropoff = false
 		RemoveBlip(dropoffblip)
-		DeleteOxyPed(data.args)
+		DeleteOxyPed()
 	else
-		QBCore.Functions.Notify("You already Delivered the Oxy", "error", 3000)
+		oxydelivered = oxydelivered + 1
+		dropoffcoords = fetchlocation()
+		lastdelivery = dropoffcoords
+		oxydeliverblip()
+		oxydeliveryped()
+		QBCore.Functions.Notify("Proceed to the next drop off location", "success", 5000)
+	end
+end
+
+RegisterNetEvent("f-oxyruns:client:StartOxy", function()
+	if oxydelivered <= Config.MaxRuns then
+		candeliver = true
+		if startedrun then
+			QBCore.Functions.Notify("You have already started a run.", "error", 3000) 
+		end
+		hasdropoff = true
+		CreateRun()
+		startedrun = true
 	end
 end)
 
-
-RegisterNetEvent("f-oxyruns:client:StartOxy", function()
-	candeliver = true
-	if startedrun then
-		QBCore.Functions.Notify("You have already started a run.", "error", 3000) return
+RegisterNetEvent("f-oxyrun:client:check", function(data)
+	if candeliver then
+		TriggerServerEvent("f-oxyrun:server:reward")
+		if math.random(0, 100) <= Config.CallCopsChance then
+			TriggerEvent("f-oxyrun:client:alertcops")
+		end
+		candeliver = false
+		hasdropoff = false
+		RemoveBlip(dropoffblip)
+		QBCore.Functions.Notify("Wait for another delivery", "primary", 5000)
+		startedrun = false
+		DeleteOxyPed(data.args)
+		Wait(Config.TBR)
+		TriggerEvent("f-oxyruns:client:StartOxy")
+	else
+		QBCore.Functions.Notify("You already Delivered the Oxy", "error", 3000)
 	end
-	dropoffcoords = Config.DropOffLocation[math.random(#Config.DropOffLocation)]
-	TriggerServerEvent("f-oxyrun:server:StartOxyPayment")
-	oxydeliverblip()
-	oxydeliveryped()
-	startedrun = true
 end)
 
 CreateThread(function()
@@ -103,8 +142,8 @@ CreateThread(function()
 	exports['qb-target']:AddTargetEntity(oxyped, {
 		options = {
 			{
-				type = "client",
-				event = "f-oxyruns:client:StartOxy",
+				type = "server",
+				event = "f-oxyrun:server:StartOxyPayment",
 				icon = 'fas fa-capsules',
 				label = 'Start Oxyrun ($'..Config.StartOxyPayment..')',
 			}
