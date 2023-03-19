@@ -13,6 +13,26 @@ RegisterNetEvent("f-oxyrun:client:alertcops", function()
 		exports['qb-dispatch']:DrugSale() -- Project-SLoth qb-dispatch
 	elseif Config.PDAlerts == "qb" then
 		TriggerServerEvent('police:server:policeAlert', 'Suspicious Hand-off') -- Regular qbcore
+	elseif Config.PDAlerts == "cd" then
+		local data = exports['cd_dispatch']:GetPlayerInfo()
+		TriggerServerEvent('cd_dispatch:AddNotification', {
+			job_table = {'police'}, 
+			coords = data.coords,
+			title = '10-17 - Suspicious Person',
+			message = 'A '..data.sex..' Was last seen doing suspicious activity at '..data.street, 
+			flash = 0,
+			unique_id = data.unique_id,
+			sound = 1,
+			blip = {
+				sprite = 480, 
+				scale = 0.8, 
+				colour = 0,
+				flashes = true, 
+				text = '911 - Suspicious Person',
+				time = 5,
+				radius = 0,
+			}
+		})
 	else
 		print("Please change your Config.PDAlerts to match one of the dispatches scripts.")
 	end
