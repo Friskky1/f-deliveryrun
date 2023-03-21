@@ -10,7 +10,7 @@ local lastdelivery = 1
 
 RegisterNetEvent("f-oxyrun:client:alertcops", function()
 	if Config.PDAlerts == "ps" then
-		exports['qb-dispatch']:DrugSale() -- Project-SLoth qb-dispatch
+		exports['ps-dispatch']:DrugSale() -- Project-SLoth qb-dispatch
 	elseif Config.PDAlerts == "qb" then
 		TriggerServerEvent('police:server:policeAlert', 'Suspicious Hand-off') -- Regular qbcore
 	elseif Config.PDAlerts == "cd" then
