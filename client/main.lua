@@ -13,7 +13,7 @@ RegisterNetEvent("f-oxyrun:client:alertcops", function()
 		exports['ps-dispatch']:DrugSale() -- Project-SLoth qb-dispatch
 	elseif Config.PDAlerts == "qb" then
 		TriggerServerEvent('police:server:policeAlert', 'Suspicious Hand-off') -- Regular qbcore
-	elseif Config.PDAlerts == "cd" then
+	elseif Config.PDAlerts == "cd" then -- Code Design dispatch
 		local data = exports['cd_dispatch']:GetPlayerInfo()
 		TriggerServerEvent('cd_dispatch:AddNotification', {
 			job_table = {'police'}, 
@@ -63,12 +63,12 @@ local function oxydeliverblip()
 end
 
 local function oxydeliveryped()
-	local ped = Config.DropOffPeds[math.random(#Config.DropOffPeds)]
-	RequestModel(ped)
-	while not HasModelLoaded(ped) do 
+	local oxyped = Config.DropOffPeds[math.random(#Config.DropOffPeds)]
+	RequestModel(oxyped)
+	while not HasModelLoaded(oxyped) do 
 		Wait(10) 
 	end
-	local dropoffped = CreatePed(0, ped, dropoffcoords.x, dropoffcoords.y, dropoffcoords.z-1.0, dropoffcoords.w, false, false)
+	local dropoffped = CreatePed(0, oxyped, dropoffcoords.x, dropoffcoords.y, dropoffcoords.z-1.0, dropoffcoords.w, false, false)
 	FreezeEntityPosition(dropoffped, true)
 	SetEntityInvincible(dropoffped, true)
 	SetBlockingOfNonTemporaryEvents(dropoffped, true)
@@ -103,6 +103,7 @@ local function CreateRun()
 		candeliver = false
 		candropoff = false
 		hasdropoff = false
+		TriggerServerEvent("f-oxyrun:server:finishedrun")
 		RemoveBlip(dropoffblip)
 		DeleteOxyPed()
 	else
@@ -118,17 +119,38 @@ end
 RegisterNetEvent("f-oxyruns:client:StartOxy", function()
 	if oxydelivered <= Config.MaxRuns then
 		candeliver = true
-		if startedrun then
+		if startedrun == true then
+			candeliver = false
 			QBCore.Functions.Notify("You have already started a run.", "error", 3000) 
+		elseif startedrun == false then
+			hasdropoff = false
+			CreateRun()
+			startedrun = true
 		end
-		hasdropoff = true
-		CreateRun()
-		startedrun = true
 	end
 end)
 
 RegisterNetEvent("f-oxyrun:client:check", function(data)
+	local ped = PlayerPedId()
 	if candeliver then
+		TaskTurnPedToFaceEntity(data.args, ped, 1.0)
+		TaskTurnPedToFaceEntity(ped, data.args, 1.0)
+		Wait(1500)
+		PlayAmbientSpeech1(data.args, "Generic_Hi", "Speech_Params_Force")
+		Wait(1000)
+
+		RequestAnimDict("mp_safehouselost@")
+		while not HasAnimDictLoaded("mp_safehouselost@") do Wait(10) end
+		TaskPlayAnim(ped, "mp_safehouselost@", "package_dropoff", 8.0, 1.0, -1, 16, 0, 0, 0, 0)
+		Wait(3100)
+
+		PlayAmbientSpeech1(data.args, "Chat_State", "Speech_Params_Force")
+		Wait(500)
+		RequestAnimDict("mp_safehouselost@")
+		while not HasAnimDictLoaded("mp_safehouselost@") do Wait(10) end
+		TaskPlayAnim(data.args, "mp_safehouselost@", "package_dropoff", 8.0, 1.0, -1, 16, 0, 0, 0, 0 )
+		Wait(3000)
+
 		TriggerServerEvent("f-oxyrun:server:reward")
 		if math.random(0, 100) <= Config.CallCopsChance then
 			TriggerEvent("f-oxyrun:client:alertcops")
@@ -144,6 +166,18 @@ RegisterNetEvent("f-oxyrun:client:check", function(data)
 	else
 		QBCore.Functions.Notify("You already Delivered the Oxy", "error", 3000)
 	end
+end)
+
+RegisterNetEvent("f-oxyrun:client:spawnoxyvehicle", function()
+	local vehicle = Config.VehicleModel
+	local coords = Config.VehicleSpawnLocation.xyzw
+
+	QBCore.Functions.SpawnVehicle(vehicle, function(veh)
+		SetVehicleNumberPlateText(veh, "OXY-"..tostring(math.random(1000, 9999)))
+		SetEntityHeading(veh, coords.w)
+		exports['LegacyFuel']:SetFuel(veh, 100.0)
+		TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
+	end, coords, true)
 end)
 
 CreateThread(function()
