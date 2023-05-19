@@ -3,8 +3,8 @@ game 'gta5'
 lua54 'yes'
 
 author 'Friskky'
-description 'Oxyrun for your criminal scums that want quick cash'
-version '3.0.0'
+description 'Delivery Run for your criminal scums that want quick cash or just a simple delivery system'
+version '1.0.0'
 
 client_scripts {
 	'client/main.lua'
