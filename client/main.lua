@@ -55,7 +55,7 @@ end
 
 local function deliveryblip()
 	dropoffblip = AddBlipForCoord(dropoffcoords.x, dropoffcoords.y, dropoffcoords.z)
-	SetBlipSprite(dropoffblip, 51)
+	SetBlipSprite(dropoffblip, 280)
 	SetBlipScale(dropoffblip, 0.8)
 	SetBlipDisplay(dropoffblip, 2)
 	SetBlipColour(dropoffblip, 0)
