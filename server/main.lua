@@ -1,30 +1,63 @@
 local QBCore = exports['qb-core']:GetCoreObject()
+
 local vehicle = nil
 local startedrun = false
+local runcooldown = Config.RunCoolDown
+
+local function cooldown()
+    while true do 
+        if runcooldown <= 0 then
+                runcooldown = Config.RunCoolDown
+                break
+            else
+            runcooldown = runcooldown - 1
+            Wait(1000)
+        end
+        Wait(1)
+    end
+end
 
 RegisterNetEvent("f-deliveryrun:server:StartRunPayment", function()
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    if startedrun == false then
-        TriggerClientEvent("f-deliveryruns:client:StartDeliveryRun", src)
-        Player.Functions.RemoveMoney('cash', Config.StartRunPayment, "Delivery Run Start")
-        startedrun = true
-    elseif startedrun == true then
-        TriggerClientEvent('QBCore:Notify', src, "You have already started a run.", "error", 5000)
-    end
-    if Config.SpawnStartVehicle == true then
-        if vehicle == nil then
-            TriggerClientEvent("f-deliveryrun:client:spawnvehicle", src)
-            vehicle = true
-        elseif vehicle == true then 
-            return 
+
+    if Player then
+        if runcooldown == Config.RunCoolDown then
+            if startedrun == false then
+                TriggerClientEvent("f-deliveryruns:client:StartDeliveryRun", src)
+                Player.Functions.RemoveMoney('cash', Config.StartRunPayment, "Delivery Run Start")
+                startedrun = true
+            elseif startedrun == true then
+                TriggerClientEvent('QBCore:Notify', src, "You have already started a run.", "error", 5000)
+            end
+            if Config.SpawnStartVehicle == true then
+                if vehicle == nil then
+                    TriggerClientEvent("f-deliveryrun:client:spawnvehicle", src)
+                    vehicle = true
+                elseif vehicle == true then end
+            end
+            if Config.WantRunCooldown == true then
+                cooldown()
+            end
+        else
+            TriggerClientEvent('QBCore:Notify', src, "There is a cooldown before you can start a delivery run.", "error", 5000)
         end
-    end
+    end 
 end)
 
 RegisterNetEvent("f-deliveryrun:server:finishedrun", function()
     startedrun = false
     vehicle = nil
+end)
+
+RegisterNetEvent("f-deliveryrun:server:vehiclereturnreward", function()
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    local reward = Config.RewardAmount
+
+    if Player.Functions.AddMoney("cash", reward, "Vehicle to Dollar Pills") then
+        TriggerClientEvent('QBCore:Notify', src, "You got $"..reward.." for Returning the Vehicle back to Dollar Pills", "success", 5000)
+    end
 end)
 
 RegisterNetEvent("f-deliveryrun:server:reward", function()
