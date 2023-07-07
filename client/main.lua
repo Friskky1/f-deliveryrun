@@ -7,6 +7,7 @@ local itemsdelivered = 0
 local candropoff = false
 local hasdropoff = false
 local lastdelivery = 1
+local vehspawned = false
 
 RegisterNetEvent("f-deliveryrun:client:alertcops", function()
 	if Config.PDAlerts == "ps" then
@@ -192,25 +193,31 @@ RegisterNetEvent("f-deliveryrun:client:spawnvehicle", function()
 		TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
 		exports[Config.Fuel]:SetFuel(veh, 100.0)
 	end, coords, true)
+	vehspawned = true
 end)
 
 RegisterNetEvent("f-deliveryrun:client:deletevehicle", function()
 	local ped = PlayerPedId()
 	local veh = GetVehiclePedIsUsing(ped)
-	if veh ~= 0 then
-		QBCore.Functions.DeleteVehicle(veh)
-	else
-		local pcoords = GetEntityCoords(ped)
-		local vehicles = GetGamePool('CVehicle')
-		for k, v in pairs(vehicles) do
-			if #(pcoords - GetEntityCoords(v)) <= 10.0 then
-				QBCore.Functions.DeleteVehicle(v)
+	if vehspawned == true then
+		if veh ~= 0 then
+			QBCore.Functions.DeleteVehicle(veh)
+		else
+			local pcoords = GetEntityCoords(ped)
+			local vehicles = GetGamePool('CVehicle')
+			for k, v in pairs(vehicles) do
+				if #(pcoords - GetEntityCoords(v)) <= 10.0 then
+					QBCore.Functions.DeleteVehicle(v)
+				end
 			end
 		end
+	else
+		QBCore.Functions.Notify("The delivery run vehicle is not spawned so you cant get the return reward", "error", 5000)
 	end
-	if Config.VehicleReturnReward == true then
+	if Config.VehicleReturnReward == true and vehspawned == true then 
 		TriggerServerEvent("f-deliveryrun:server:vehiclereturnreward")
 	end
+	vehspawned = false
 end)
 
 CreateThread(function()
