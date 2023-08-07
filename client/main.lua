@@ -206,7 +206,7 @@ RegisterNetEvent("f-deliveryrun:client:deletevehicle", function()
 			local pcoords = GetEntityCoords(ped)
 			local vehicles = GetGamePool('CVehicle')
 			for k, v in pairs(vehicles) do
-				if #(pcoords - GetEntityCoords(v)) <= 10.0 then
+				if #(pcoords - GetVehiclePedIsUsing(ped, v)) <= 10.0 then
 					QBCore.Functions.DeleteVehicle(v)
 				end
 			end
