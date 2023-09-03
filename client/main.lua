@@ -9,36 +9,6 @@ local hasdropoff = false
 local lastdelivery = 1
 local vehspawned = false
 
-RegisterNetEvent("f-deliveryrun:client:alertcops", function()
-	if Config.PDAlerts == "ps" then
-		exports['ps-dispatch']:SuspiciousActivity() -- Project-SLoth qb-dispatch
-	elseif Config.PDAlerts == "qb" then
-		TriggerServerEvent('police:server:policeAlert', 'Suspicious Activity') -- Regular qbcore
-	elseif Config.PDAlerts == "cd" then -- Code Design dispatch
-		local data = exports['cd_dispatch']:GetPlayerInfo()
-		TriggerServerEvent('cd_dispatch:AddNotification', {
-			job_table = {'police'}, 
-			coords = data.coords,
-			title = '10-45 - Suspicious Person',
-			message = 'A '..data.sex..' Was last seen doing suspicious activity at '..data.street, 
-			flash = 0,
-			unique_id = data.unique_id,
-			sound = 1,
-			blip = {
-				sprite = 501, 
-				scale = 1.0, 
-				colour = 1,
-				flashes = true, 
-				text = '911 - Suspicious Person',
-				time = 5,
-				radius = 0,
-			}
-		})
-	else
-		print("Please change your Config.PDAlerts to match one of the dispatches scripts.")
-	end
-end)
-
 local function transaction(deliveryped)
 	exports['qb-target']:AddTargetEntity(deliveryped, {
 		options = {
@@ -206,8 +176,11 @@ RegisterNetEvent("f-deliveryrun:client:deletevehicle", function()
 			local pcoords = GetEntityCoords(ped)
 			local vehicles = GetGamePool('CVehicle')
 			for k, v in pairs(vehicles) do
-				if #(pcoords - GetVehiclePedIsUsing(ped, v)) <= 10.0 then
+				if #(pcoords - GetVehiclePedIsUsing(ped, v)) <= 10.0 and IsPedInVehicle(ped, veh, false) then
 					QBCore.Functions.DeleteVehicle(v)
+					vehspawned = false
+				else
+					return
 				end
 			end
 		end
@@ -217,7 +190,6 @@ RegisterNetEvent("f-deliveryrun:client:deletevehicle", function()
 	if Config.VehicleReturnReward == true and vehspawned == true then 
 		TriggerServerEvent("f-deliveryrun:server:vehiclereturnreward")
 	end
-	vehspawned = false
 end)
 
 CreateThread(function()
@@ -244,6 +216,18 @@ CreateThread(function()
 		},
 		distance = 2.0
 	})
+
+	if Config.StartBlip.Blip == true then
+		StartBlip = AddBlipForCoord(Config.StartLocation.xyz)
+		SetBlipSprite(StartBlip, Config.StartBlip.Sprite)
+		SetBlipScale(StartBlip, Config.StartBlip.Scale)
+		SetBlipDisplay(StartBlip, Config.StartBlip.Display)
+		SetBlipColour(StartBlip, Config.StartBlip.Colour)
+		SetBlipAsShortRange(StartBlip, true)
+		AddTextEntry('StartBlip', Config.StartBlip.BlipText)
+		BeginTextCommandSetBlipName('StartBlip')
+		EndTextCommandSetBlipName(StartBlip)
+	end
 end)
 
 if Config.SpawnStartVehicle == true then
