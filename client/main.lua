@@ -87,7 +87,7 @@ local function CreateRun()
 	end
 end
 
-RegisterCommand("enddeliveryrun", function()
+local function EndDeliveryRun()
 	itemsdelivered = 0
 	startedrun = false
 	candeliver = false
@@ -97,6 +97,10 @@ RegisterCommand("enddeliveryrun", function()
 	QBCore.Functions.Notify("You ended the deliveryrun", "success", 5000)
 	RemoveBlip(dropoffblip)
 	DeleteDeliveryPed()
+end
+
+RegisterCommand("enddeliveryrun", function()
+	EndDeliveryRun()
 end)
 
 RegisterNetEvent("f-deliveryruns:client:StartDeliveryRun", function()
@@ -257,3 +261,11 @@ if Config.SpawnStartVehicle == true then
 		})
 	end)
 end
+
+AddEventHandler('playerDropped', function()
+	if startedrun == true then
+		EndDeliveryRun()
+	else
+		return
+	end
+end)
