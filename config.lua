@@ -1,4 +1,4 @@
-Config = {}
+Config = Config or {}
 
 Config.DeliveryRunPed = "g_m_m_chemwork_01" -- starting delivery run ped 
 Config.StartLocation = vector4(68.96, -1569.93, 29.60, 49) -- Starting ped location for the delivery run
