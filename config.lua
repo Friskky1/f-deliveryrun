@@ -6,7 +6,7 @@ Config.StartRunPayment = 100 -- How much you pay to start the run
 
 Config.StartBlip = {
     Blip = true,
-    Sprite = 5,
+    Sprite = 51,
     Scale = 0.6,
     Display = 2,
     Color = 1,
