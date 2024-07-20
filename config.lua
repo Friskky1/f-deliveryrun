@@ -4,6 +4,15 @@ Config.DeliveryRunPed = "g_m_m_chemwork_01" -- starting delivery run ped
 Config.StartLocation = vector4(68.96, -1569.93, 29.60, 49) -- Starting ped location for the delivery run
 Config.StartRunPayment = 100 -- How much you pay to start the run
 
+Config.StartBlip = {
+    Blip = true,
+    Sprite = 5,
+    Scale = 0.6,
+    Display = 2,
+    Color = 1,
+    BlipText = "Blip Info",
+}
+
 Config.SpawnStartVehicle = true -- Set to true if you want a vehicle to spawn once the delivery run has started
 
 Config.DelVehiclePed = "mp_m_waremech_01" -- Only works if Config.SpawnStartVehicle is true
