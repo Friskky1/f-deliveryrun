@@ -10,7 +10,7 @@ Config.StartBlip = {
     Scale = 0.6,
     Display = 2,
     Color = 1,
-    BlipText = "Blip Info",
+    BlipText = "Delivery Run",
 }
 
 Config.SpawnStartVehicle = true -- Set to true if you want a vehicle to spawn once the delivery run has started
