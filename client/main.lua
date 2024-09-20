@@ -8,20 +8,35 @@ local candropoff = false
 local hasdropoff = false
 local lastdelivery = 1
 local vehspawned = false
+local Target = Config.Target
 
 local function transaction(deliveryped)
-	exports['qb-target']:AddTargetEntity(deliveryped, {
-		options = {
-			{
-				type = "client",
-				event = "f-deliveryrun:client:check",
-				icon = 'fas fa-capsules',
-				label = 'Deliver ' ..Config.DeliveryItem,
-				args = deliveryped,
-			}
-		},
-		distance = 2.0
-	})
+	if Target == "qb" then
+		exports['qb-target']:AddTargetEntity(deliveryped, {
+			options = {
+				{
+					type = "client",
+					event = "f-deliveryrun:client:check",
+					icon = 'fas fa-capsules',
+					label = 'Deliver ' ..Config.DeliveryItem,
+					args = deliveryped,
+				}
+			},
+			distance = 2.0
+		})
+	elseif Target == "ox" then
+        exports.ox_target:addLocalEntity(deliveryped, {
+            {
+                icon = 'fas fa-capsules',
+                label = 'Deliver ' ..Config.DeliveryItem,
+				distance = 2.0,
+				onSelect = function()
+					TriggerEvent("f-deliveryrun:client:check", deliveryped)
+				end
+				
+            }
+        })
+	end
 end
 
 local function deliveryblip()
@@ -117,14 +132,14 @@ RegisterNetEvent("f-deliveryruns:client:StartDeliveryRun", function()
 	end
 end)
 
-RegisterNetEvent("f-deliveryrun:client:check", function(data)
+RegisterNetEvent("f-deliveryrun:client:check", function(deliveryped)
 	local ped = PlayerPedId()
 	if candeliver and IsPedOnFoot(ped) then
-		if #(GetEntityCoords(ped) - GetEntityCoords(data.args)) < 5.0 then
-			TaskTurnPedToFaceEntity(data.args, ped, 1.0)
-			TaskTurnPedToFaceEntity(ped, data.args, 1.0)
+		if #(GetEntityCoords(ped) - GetEntityCoords(deliveryped)) < 5.0 then
+			TaskTurnPedToFaceEntity(deliveryped, ped, 1.0)
+			TaskTurnPedToFaceEntity(ped, deliveryped, 1.0)
 			Wait(1500)
-			PlayAmbientSpeech1(data.args, "Generic_Hi", "Speech_Params_Force")
+			PlayAmbientSpeech1(deliveryped, "Generic_Hi", "Speech_Params_Force")
 			Wait(1000)
 
 			RequestAnimDict("mp_safehouselost@")
@@ -132,11 +147,11 @@ RegisterNetEvent("f-deliveryrun:client:check", function(data)
 			TaskPlayAnim(ped, "mp_safehouselost@", "package_dropoff", 8.0, 1.0, -1, 16, 0, 0, 0, 0)
 			Wait(3100)
 
-			PlayAmbientSpeech1(data.args, "Chat_State", "Speech_Params_Force")
+			PlayAmbientSpeech1(deliveryped, "Chat_State", "Speech_Params_Force")
 			Wait(500)
 			RequestAnimDict("mp_safehouselost@")
 			while not HasAnimDictLoaded("mp_safehouselost@") do Wait(10) end
-			TaskPlayAnim(data.args, "mp_safehouselost@", "package_dropoff", 8.0, 1.0, -1, 16, 0, 0, 0, 0 )
+			TaskPlayAnim(deliveryped, "mp_safehouselost@", "package_dropoff", 8.0, 1.0, -1, 16, 0, 0, 0, 0 )
 			Wait(3000)
 
 			TriggerServerEvent("f-deliveryrun:server:reward")
@@ -148,7 +163,7 @@ RegisterNetEvent("f-deliveryrun:client:check", function(data)
 			RemoveBlip(dropoffblip)
 			QBCore.Functions.Notify("Wait for another delivery", "primary", 5000)
 			startedrun = false
-			DeleteDeliveryPed(data.args)
+			DeleteDeliveryPed(deliveryped)
 			Wait(Config.TBR * 1000)
 			TriggerEvent("f-deliveryruns:client:StartDeliveryRun")
 		end
@@ -165,9 +180,8 @@ RegisterNetEvent("f-deliveryrun:client:spawnvehicle", function()
 		SetVehicleNumberPlateText(veh, "RUN-"..tostring(math.random(1000, 9999)))
 		SetEntityHeading(veh, coords.w)
 		TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
-		exports[Config.Fuel]:SetFuel(veh, 100.0)
+		vehspawned = true
 	end, coords, true)
-	vehspawned = true
 end)
 
 RegisterNetEvent("f-deliveryrun:client:deletevehicle", function()
@@ -209,18 +223,30 @@ CreateThread(function()
 	SetEntityInvincible(runped, true)
 	SetBlockingOfNonTemporaryEvents(runped, true)
 	-- Target
-	exports['qb-target']:AddTargetEntity(runped, {
-		options = {
-			{
-				type = "server",
-				event = "f-deliveryrun:server:StartRunPayment",
-				icon = 'fas fa-capsules',
-				label = 'Start Delivery Run ($'..Config.StartRunPayment..')',
-			}
-		},
-		distance = 2.0
-	})
-
+	if Target == "qb" then
+		exports['qb-target']:AddTargetEntity(runped, {
+			options = {
+				{
+					type = "server",
+					event = "f-deliveryrun:server:StartRunPayment",
+					icon = 'fas fa-capsules',
+					label = 'Start Delivery Run ($'..Config.StartRunPayment..')',
+				}
+			},
+			distance = 2.0
+		})
+	elseif Target == "ox" then
+        exports.ox_target:addLocalEntity(runped, {
+            {
+                icon = 'fas fa-capsules',
+                label = 'Start Delivery Run ($'..Config.StartRunPayment..')',
+				distance = 2.0,
+				onSelect = function()
+					TriggerServerEvent("f-deliveryrun:server:StartRunPayment")
+				end
+            }
+        })
+	end	
 	if Config.StartBlip.Blip == true then
 		StartBlip = AddBlipForCoord(Config.StartLocation.xyz)
 		SetBlipSprite(StartBlip, Config.StartBlip.Sprite)
@@ -248,17 +274,30 @@ if Config.SpawnStartVehicle == true then
 		SetEntityInvincible(vehp, true)
 		SetBlockingOfNonTemporaryEvents(vehp, true)
 		-- Target
-		exports['qb-target']:AddTargetEntity(vehp, {
-			options = {
+		if Target == "qb" then
+			exports['qb-target']:AddTargetEntity(vehp, {
+				options = {
+					{
+						type = "client",
+						event = "f-deliveryrun:client:deletevehicle",
+						icon = 'fas fa-capsules',
+						label = 'Delete Delivery Run Vehicle',
+					}
+				},
+				distance = 5.0
+			})
+		elseif Target == "ox" then
+			exports.ox_target:addLocalEntity(vehp, {
 				{
-					type = "client",
-					event = "f-deliveryrun:client:deletevehicle",
 					icon = 'fas fa-capsules',
 					label = 'Delete Delivery Run Vehicle',
+					distance = 5.0,
+					onSelect = function()
+						TriggerEvent("f-deliveryrun:client:deletevehicle")
+					end
 				}
-			},
-			distance = 5.0
-		})
+			})
+		end	
 	end)
 end
 

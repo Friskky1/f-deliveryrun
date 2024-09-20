@@ -5,6 +5,8 @@ RegisterNetEvent("f-deliveryrun:client:alertcops", function()
 		exports['ps-dispatch']:SuspiciousActivity() -- Project-SLoth qb-dispatch
 	elseif Config.PDAlerts == "qb" then
 		TriggerServerEvent('police:server:policeAlert', 'Suspicious Activity') -- Regular qbcore
+	elseif Config.PDAlerts == "qbx" then
+		TriggerServerEvent('police:server:policeAlert', 'Suspicious Activity') -- Regular qbox
 	elseif Config.PDAlerts == "cd" then -- Code Design dispatch
 		local data = exports['cd_dispatch']:GetPlayerInfo()
 		TriggerServerEvent('cd_dispatch:AddNotification', {

@@ -1,5 +1,7 @@
 Config = Config or {}
 
+Config.Target = "ox" -- "qb" For qb-target or "ox" for ox_target
+
 Config.DeliveryRunPed = "g_m_m_chemwork_01" -- starting delivery run ped 
 Config.StartLocation = vector4(68.96, -1569.93, 29.60, 49) -- Starting ped location for the delivery run
 Config.StartRunPayment = 100 -- How much you pay to start the run
@@ -23,8 +25,6 @@ Config.RewardAmount = 1000 -- Only works if Config.SpawnStartVehicle is true
 
 Config.VehicleModel = "burrito3"
 Config.VehicleSpawnLocation = vector4(82.29, -1542.56, 29.28, 46)
-
-Config.Fuel = 'LegacyFuel' -- cdn-fuel, LegacyFuel and ps-fuel
 
 Config.DropOffPeds = { -- the peds that you see when you deliver the items
     "a_m_y_busicas_01",
@@ -59,5 +59,5 @@ Config.DropOffLocation = {
     vector4(-270.55, -977.02, 31.22, 162.47),
 }
 
-Config.PDAlerts = "qb" -- qb, ps and cd (Configure to your dispatch system)
+Config.PDAlerts = "qbx" -- qb, qbx, ps and cd (Configure to your dispatch system)
 Config.CallCopsChance = math.random(30, 50) -- 30 to 50% chance to call the cops
